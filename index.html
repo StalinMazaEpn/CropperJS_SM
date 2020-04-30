@@ -21,47 +21,55 @@
     <link rel='stylesheet prefetch' href='./cropper.css'>
     <style>
         img {
+            display: block;
             max-width: 100%;
+        }
+
+        .container input {
+            padding: 1em;
+        }
+
+        #seccion-imagen img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Hello, world!</h1>
-        <button class="btn btn-primary" id="btnUploadImage">Subir Imagen</button>
+        <h1>Ejercicio Cropper Image</h1>
+        <div class="container">
+            <input type="file" id="fileInputOne" accept="image/*" required />
+        </div>
+        <div class="container">
+            <input type="file" id="fileInputTwo" accept="image/*" required />
+        </div>
+        <div id="seccion-imagen">
+
+        </div>
     </div>
-    <!-- Modal -->
-    <div class="modal fade" id="modal" aria-labelledby="modalLabel" role="dialog" tabindex="-1">
+    <!--Modal Cropper -->
+    <div class="modal fade" id="modalCrop" aria-labelledby="modalLabel" role="dialog" tabindex="-1">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                             aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="modalLabel">Crop the image</h4>
+                    <h4 class="modal-title" id="modalLabel">Recortar la Imagen</h4>
                 </div>
                 <div class="modal-body">
-                    <div>
-                        <img id="image" src="./little.jpg" alt="Picture">
-                    </div>
-                    <div>
-                        <canvas id="canvas">
-                            Your browser does not support the HTML5 canvas element.
-                          </canvas>
-                    </div>
+                    <canvas id="canvas">
+                        Tu navegador no soporta el API de Canvas
+                    </canvas>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="modalCropperAceptar">Aceptar</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="modalCroppApply">Aceptar</button>
+                    <button type="button" class="btn btn-default" id="modalCroppDismiss">Close</button>
                 </div>
             </div>
         </div>
-    </div>
-    <input type="file" id="fileInput" accept="image/*" />
-		<input type="button" id="btnCrop" value="Crop" />
-		<input type="button" id="btnRestore" value="Restore" />
-    <div class="body-fake">
-
     </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
@@ -70,88 +78,49 @@
         integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous">
     </script>
     <script src='./cropper.js'></script>
+    <script src="main.js"></script>
     <script>
-        $('#btnUploadImage').click(function (event) {
-            console.log('event', event)
-            $('#modal').modal('show')
-        });
-        var $image = $('#image');
-
-        $('#modalCropperAceptar').click(function (event) {
-            console.log('event', event)
-            $('#modal').modal('hide')
-        });
-
-        $('#modal').on('shown.bs.modal', function () {
-            $image.cropper({
-                autoCropArea: 0.5,
-                built: function () {
-                    //$image.cropper('setCanvasData', canvasData);
-                    //$image.cropper('setCropBoxData', cropBoxData);
-                    $image.cropper('setData', {
-                        width: 480,
-                        height: 270
-                    });
-                },
-                done: function (data) {
-                    console.log('data...', data);
-                }
-            });
-        }).on('hidden.bs.modal', function () {
-            // cropBoxData = $image.cropper('getCropBoxData');
-            //canvasData = $image.cropper('getCanvasData');
-            let base64Img = $image.cropper("getDataURL");
-            let originalData = $image.cropper("getData");
-            let baseimg = $image.cropper('getCroppedCanvas');
-            //console.log('canvasData', canvasData)
-            // console.log('cropBoxData', cropBoxData)
-            console.log('base64Img', base64Img)
-            console.log('baseimg canvas', baseimg)
-            console.log('baseimg base64', baseimg.toDataURL())
-            console.log('base64Img', base64Img[0])
-            console.log('originalData', originalData)
-            $image.cropper('destroy');
-            $('.body-fake').append(base64Img[0]);
-        });
-
-
-        var canvas = $("#canvas"),
-            context = canvas.get(0).getContext("2d"),
-            $result = $('#result');
-
-        $('#fileInput').on('change', function () {
-            if (this.files && this.files[0]) {
-                if (this.files[0].type.match(/^image\//)) {
-                    var reader = new FileReader();
-                    reader.onload = function (evt) {
-                        var img = new Image();
-                        img.onload = function () {
-                            context.canvas.height = img.height;
-                            context.canvas.width = img.width;
-                            context.drawImage(img, 0, 0);
-                            var cropper = canvas.cropper({
-                                aspectRatio: 16 / 9
-                            });
-                            $('#btnCrop').click(function () {
-                                // Get a string base 64 data url
-                                var croppedImageDataURL = canvas.cropper('getCroppedCanvas')
-                                    .toDataURL("image/png");
-                                $result.append($('<img>').attr('src', croppedImageDataURL));
-                            });
-                            $('#btnRestore').click(function () {
-                                canvas.cropper('reset');
-                                $result.empty();
-                            });
-                        };
-                        img.src = evt.target.result;
-                    };
-                    reader.readAsDataURL(this.files[0]);
-                } else {
-                    alert("Invalid file type! Please select an image file.");
-                }
-            } else {
-                alert('No file(s) selected.');
+        new CropperModal({
+            modalCanvas: '#canvas',
+            fileInput: '#fileInputOne',
+            modal: '#modalCrop',
+            modalBtnApply: '#modalCroppApply',
+            modalBtnCancel: '#modalCroppDismiss',
+            cropperOptions: {
+                aspectRatio: 16 / 9,
+                data: null,
+                responsive: true,
             }
+        });
+
+        $('#fileInputOne').on("imageCropped", function (event, data) {
+            const attachmentUtil = new AttachmentUtil();
+            var file = attachmentUtil.dataURItoFile(data.base64);
+            const image = new Image();
+            image.src = data.base64;
+            const seccionImg = document.getElementById('seccion-imagen');
+            seccionImg.appendChild(image)
+        });
+        new CropperModal({
+            modalCanvas: '#canvas',
+            fileInput: '#fileInputTwo',
+            modal: '#modalCrop',
+            modalBtnApply: '#modalCroppApply',
+            modalBtnCancel: '#modalCroppDismiss',
+            cropperOptions: {
+                aspectRatio: 16 / 9,
+                data: null,
+                responsive: true,
+            }
+        });
+
+        $('#fileInputTwo').on("imageCropped", function (event, data) {
+            const attachmentUtil = new AttachmentUtil();
+            var file = attachmentUtil.dataURItoFile(data.base64);
+            const image = new Image();
+            image.src = data.base64;
+            const seccionImg = document.getElementById('seccion-imagen');
+            seccionImg.appendChild(image)
         });
     </script>
 </body>
